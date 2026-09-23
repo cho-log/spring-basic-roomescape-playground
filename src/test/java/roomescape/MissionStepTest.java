@@ -6,6 +6,7 @@ import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,13 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MissionStepTest {
 
-    @org.springframework.boot.test.web.server.LocalServerPort
+    @LocalServerPort
     private int port;
-
-    @org.junit.jupiter.api.BeforeEach
-    void setUpPort() {
-        RestAssured.port = port;
-    }
 
     @Test
     void 일단계() {
@@ -36,7 +32,7 @@ public class MissionStepTest {
         assertThat(token).isNotBlank();
 
         ExtractableResponse<Response> response =
-                RestAssured.given().log().all()
+                RestAssured.given().port(port).log().all()
                         .cookie("token", token)
                         .when().get("/login/check")
                         .then().log().all()
@@ -52,12 +48,12 @@ public class MissionStepTest {
         String token = createToken("admin@email.com", "password");
 
         Map<String, String> params = new HashMap<>();
-        params.put("date", "2024-03-01");
+        params.put("date", "2024-03-02");
         params.put("time", "1");
         params.put("theme", "1");
 
         ExtractableResponse<Response> response =
-                RestAssured.given().log().all()
+                RestAssured.given().port(port).log().all()
                         .contentType(ContentType.JSON)
                         .cookie("token", token)
                         .body(params)
@@ -70,9 +66,10 @@ public class MissionStepTest {
                 .isEqualTo("어드민");
 
         params.put("memberId", "2");
+        params.put("time", "2");
 
         ExtractableResponse<Response> adminResponse =
-                RestAssured.given().log().all()
+                RestAssured.given().port(port).log().all()
                         .contentType(ContentType.JSON)
                         .cookie("token", token)
                         .body(params)
@@ -87,7 +84,7 @@ public class MissionStepTest {
 
     @Test
     void 로그인_없이_예약하면_실패한다() {
-        RestAssured.given().log().all()
+        RestAssured.given().port(port).log().all()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "date", "2024-03-01",
@@ -101,7 +98,7 @@ public class MissionStepTest {
 
     @Test
     void 유효하지_않은_토큰으로_예약하면_실패한다() {
-        RestAssured.given().log().all()
+        RestAssured.given().port(port).log().all()
                 .contentType(ContentType.JSON)
                 .cookie("token", "invalid-token")
                 .body(Map.of(
@@ -127,13 +124,13 @@ public class MissionStepTest {
         };
 
         for (String path : adminPaths) {
-            RestAssured.given().log().all()
+            RestAssured.given().port(port).log().all()
                     .cookie("token", brownToken)
                     .when().get(path)
                     .then().log().all()
                     .statusCode(403);
 
-            RestAssured.given().log().all()
+            RestAssured.given().port(port).log().all()
                     .cookie("token", adminToken)
                     .when().get(path)
                     .then().log().all()
@@ -143,7 +140,7 @@ public class MissionStepTest {
 
     @Test
     void 로그인_없이_관리자_페이지에_접근하면_실패한다() {
-        RestAssured.given().log().all()
+        RestAssured.given().port(port).log().all()
                 .when().get("/admin")
                 .then().log().all()
                 .statusCode(401);
@@ -151,7 +148,7 @@ public class MissionStepTest {
 
     @Test
     void 유효하지_않은_토큰으로_관리자_페이지에_접근하면_실패한다() {
-        RestAssured.given().log().all()
+        RestAssured.given().port(port).log().all()
                 .cookie("token", "invalid-token")
                 .when().get("/admin")
                 .then().log().all()
@@ -160,14 +157,14 @@ public class MissionStepTest {
 
     @Test
     void 로그인_없이_일반_페이지에_접근할_수_있다() {
-        RestAssured.given().log().all()
+        RestAssured.given().port(port).log().all()
                 .when().get("/")
                 .then().log().all()
                 .statusCode(200);
     }
 
     private String createToken(String email, String password) {
-        return RestAssured.given().log().all()
+        return RestAssured.given().port(port).log().all()
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "email", email,
@@ -199,7 +196,7 @@ public class MissionStepTest {
                 "value", "21:00"
         );
 
-        RestAssured.given()
+        RestAssured.given().port(port)
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when().request(method, path)
@@ -207,7 +204,7 @@ public class MissionStepTest {
 
         String token = createToken("brown@email.com", "password");
 
-        RestAssured.given()
+        RestAssured.given().port(port)
                 .contentType(ContentType.JSON)
                 .cookie("token", token)
                 .body(body)
@@ -220,7 +217,7 @@ public class MissionStepTest {
 
     @Test
     void 동명이인도_회원_ID로_구분하여_예약한다() {
-        Long anotherBrownId = RestAssured.given()
+        Long anotherBrownId = RestAssured.given().port(port)
                 .contentType(ContentType.JSON)
                 .body(Map.of(
                         "name", "브라운",
@@ -233,14 +230,15 @@ public class MissionStepTest {
 
         String adminToken = createToken("admin@email.com", "password");
 
+        long timeId = 1L;
         for (Long memberId : new Long[]{2L, anotherBrownId}) {
-            Long reservationId = RestAssured.given()
+            Long reservationId = RestAssured.given().port(port)
                     .contentType(ContentType.JSON)
                     .cookie("token", adminToken)
                     .body(Map.of(
                             "memberId", memberId,
                             "date", "2024-03-02",
-                            "time", 1,
+                            "time", timeId++,
                             "theme", 1
                     ))
                     .when().post("/reservations")
@@ -261,7 +259,7 @@ public class MissionStepTest {
     void 일반_회원은_다른_회원으로_예약할_수_없다() {
         String token = createToken("brown@email.com", "password");
 
-        RestAssured.given()
+        RestAssured.given().port(port)
                 .contentType(ContentType.JSON)
                 .cookie("token", token)
                 .body(Map.of(
