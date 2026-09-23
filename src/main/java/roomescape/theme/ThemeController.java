@@ -1,7 +1,6 @@
 package roomescape.theme;
 
-
-import roomescape.auth.AdminOnly;
+import roomescape.member.AdminOnly;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

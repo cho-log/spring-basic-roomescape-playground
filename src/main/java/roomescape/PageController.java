@@ -1,7 +1,6 @@
 package roomescape;
 
-
-import roomescape.auth.AdminOnly;
+import roomescape.member.AdminOnly;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
