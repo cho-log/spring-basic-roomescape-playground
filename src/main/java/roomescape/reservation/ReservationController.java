@@ -64,10 +64,10 @@ public class ReservationController {
         return reservationService.findMyReservations(loginMember.getId());
     }
 
+    // 7단계) DB 조회 삭제
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity delete(@PathVariable Long id, LoginMember loginMember) {
-        Member member = memberRepository.findById(loginMember.getId()).orElseThrow();
-        reservationService.deleteById(id, member);
+    public ResponseEntity<Void> delete(@PathVariable Long id, LoginMember loginMember) {
+        reservationService.deleteById(id, loginMember);
         return ResponseEntity.noContent().build();
     }
 }

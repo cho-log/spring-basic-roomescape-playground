@@ -65,11 +65,12 @@ public class Reservation {
     }
 
     // 예약이 본인 것인지 스스로 확인하도록 추가
-    public boolean isOwnedBy(Member member) {
+    // 7단계) Member 객체 대신 memberId를 받음(id로 확인 가능)
+    public boolean isOwnedBy(Long memberId) {
         if (this.member == null) {
             return false;
         }
-        return this.member.getId().equals(member.getId());
+        return this.member.getId().equals(memberId);
     }
 
     public Long getId() {
