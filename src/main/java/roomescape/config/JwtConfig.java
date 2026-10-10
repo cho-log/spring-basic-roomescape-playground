@@ -7,8 +7,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JwtConfig {
+
     @Bean
-    public JwtUtils jwtUtils(@Value("${security.jwt.token.secret-key}") String secretKey) {
-        return new JwtUtils(secretKey); // JtUtils는 순수 바자 객체이므로 비밀키 주입
+    public JwtUtils jwtUtils(@Value("${roomescape.auth.jwt.secret}") String secretKey) { // <-- 여기 키 이름 변경
+        return new JwtUtils(secretKey); // 8단계) 프로퍼티 키 수정
     }
 }
