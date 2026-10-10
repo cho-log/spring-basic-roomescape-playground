@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import roomescape.member.Member;
 import roomescape.member.MemberRepository;
 
+// data.sql 대신 초기 데이터를 넣어주는 역할
 @Profile("!test") // 중요) test 프로파일이 '아닐 때만' 동작
 @Component
 public class DataLoader implements CommandLineRunner {
