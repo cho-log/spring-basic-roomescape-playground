@@ -1,5 +1,6 @@
 package roomescape.member;
 
+import auth.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,12 +13,12 @@ public class MemberService {
     private static final int MIN_PASSWORD_LENGTH = 4;
 
     private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
 
-    public MemberService(MemberRepository memberRepository, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
+    public MemberService(MemberRepository memberRepository, JwtUtils jwtUtils, PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.jwtUtils = jwtUtils;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -46,12 +47,6 @@ public class MemberService {
         Member member = memberRepository.findByEmail(email)
                 .filter(m -> passwordEncoder.matches(password, m.getPassword()))
                 .orElseThrow(() -> new AuthenticationException("이메일 또는 비밀번호가 일치하지 않습니다."));
-        return jwtTokenProvider.createToken(member);
-    }
-
-    public Member findMemberByToken(String token) {
-        long id = jwtTokenProvider.getMemberId(token);
-        return memberRepository.findById(id)
-                .orElseThrow(() -> new AuthenticationException("존재하지 않는 회원입니다."));
+        return jwtUtils.createToken(member.getId(), member.getName(), member.getEmail(), member.getRole());
     }
 }

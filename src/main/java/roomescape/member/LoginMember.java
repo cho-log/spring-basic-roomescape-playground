@@ -28,4 +28,8 @@ public class LoginMember {
     public String getRole() {
         return role;
     }
+
+    // 수정) DB조회 없이 권환 확인하는 메서드 추가
+    public boolean isAdmin() { return "ADMIN".equals(role); }
+
 }

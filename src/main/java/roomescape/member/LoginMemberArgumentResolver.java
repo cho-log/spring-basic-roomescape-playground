@@ -1,5 +1,7 @@
 package roomescape.member;
 
+import auth.JwtUtils; // [수정] JwtUtils 임포트 추가
+import io.jsonwebtoken.Claims; // [수정] Claims 임포트 추가
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
@@ -13,10 +15,12 @@ import roomescape.exception.UnauthorizedException;
 @Component
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private final MemberService memberService;
+    // [수정] MemberService 대신 JwtUtils를 필드로 사용
+    private final JwtUtils jwtUtils;
 
-    public LoginMemberArgumentResolver(MemberService memberService) {
-        this.memberService = memberService;
+    // [수정] 생성자로 JwtUtils 주입받도록 변경
+    public LoginMemberArgumentResolver(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     // (1) LoginMember 타입인지 검사
@@ -43,8 +47,14 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
 
-        Member member = memberService.findMemberByToken(token);
-        return new LoginMember(member.getId(), member.getName(), member.getEmail(), member.getRole());
+        // 수정) JwtUtils로 토큰(Claims)을 해석하여 DB 접근 없이 즉시 LoginMember 객체 생성
+        Claims claims = jwtUtils.getClaims(token);
+        return new LoginMember(
+                Long.valueOf(claims.getSubject()),
+                claims.get("name", String.class),
+                claims.get("email", String.class),
+                claims.get("role", String.class)
+        );
     }
 
     // (2) 브라우저가 보낸 여러 쿠키(배열) 중 이름이 "token"인 쿠키를 찾는다
