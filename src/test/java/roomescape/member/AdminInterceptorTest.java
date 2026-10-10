@@ -1,28 +1,23 @@
 package roomescape.member;
 
+import auth.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import roomescape.exception.UnauthorizedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
 
-@ExtendWith(MockitoExtension.class)
 class AdminInterceptorTest {
-    @Mock
-    private MemberService memberService;
+    private final JwtUtils jwtUtils = new JwtUtils("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=");
     private AdminInterceptor adminInterceptor;
 
     @BeforeEach
     void setUp() {
-        adminInterceptor = new AdminInterceptor(memberService);
+        adminInterceptor = new AdminInterceptor(jwtUtils);
     }
 
     @Test
@@ -40,11 +35,9 @@ class AdminInterceptorTest {
     void 일반_유저_권한이면_403_상태코드를_반환하고_요청을_차단한다() {
         // given
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setCookies(new Cookie("token", "userToken"));
+        String token = jwtUtils.createToken(1L, "일반유저", "user@email.com", "USER");
+        request.setCookies(new Cookie("token", token));
         MockHttpServletResponse response = new MockHttpServletResponse();
-
-        Member userMember = new Member(1L, "일반유저", "user@email.com", "USER");
-        given(memberService.findMemberByToken("userToken")).willReturn(userMember);
 
         // when
         boolean result = adminInterceptor.preHandle(request, response, null);
@@ -58,11 +51,9 @@ class AdminInterceptorTest {
     void 관리자_권한이면_요청을_통과시킨다() {
         // given
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setCookies(new Cookie("token", "adminToken"));
+        String token = jwtUtils.createToken(2L, "관리자", "admin@email.com", "ADMIN");
+        request.setCookies(new Cookie("token", token));
         MockHttpServletResponse response = new MockHttpServletResponse();
-
-        Member adminMember = new Member(2L, "관리자", "admin@email.com", "ADMIN");
-        given(memberService.findMemberByToken("adminToken")).willReturn(adminMember);
 
         // when
         boolean result = adminInterceptor.preHandle(request, response, null);
