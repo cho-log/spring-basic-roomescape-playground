@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import roomescape.member.domain.Role;
 
 import java.util.Optional;
 
@@ -31,9 +30,7 @@ public class AdminInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        LoginMember loginMember = authService.findMemberByToken(token.get());
-
-        if (loginMember.role() != Role.ADMIN) {
+        if (!authService.isAdmin(token.get())) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }

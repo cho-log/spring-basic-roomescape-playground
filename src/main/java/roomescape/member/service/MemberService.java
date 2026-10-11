@@ -2,7 +2,7 @@ package roomescape.member.service;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import roomescape.exception.DuplicateMemberException;
+import roomescape.exception.member.DuplicateMemberException;
 import roomescape.member.domain.Member;
 import roomescape.member.domain.Role;
 import roomescape.member.dto.MemberRequest;
