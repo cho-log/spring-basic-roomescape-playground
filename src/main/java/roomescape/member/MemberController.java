@@ -1,5 +1,6 @@
 package roomescape.member;
 
+import auth.LoginMember;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

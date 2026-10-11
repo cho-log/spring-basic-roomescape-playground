@@ -1,5 +1,6 @@
 package roomescape;
 
+import auth.InvalidTokenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,6 +14,11 @@ public class ExceptionController {
 
     @ExceptionHandler(AuthorizationException.class)
     public ResponseEntity<Void> handleAuthorizationException(AuthorizationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<Void> handleInvalidTokenException(InvalidTokenException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
