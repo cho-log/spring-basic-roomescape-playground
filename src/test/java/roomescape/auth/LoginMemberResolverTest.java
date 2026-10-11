@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 
 class LoginMemberResolverTest {
 
-    private final JwtUtils jwtUtils = new JwtUtils();
+    private final JwtUtils jwtUtils = new JwtUtils("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=");
     private final LoginMemberResolver loginMemberResolver = new LoginMemberResolver(jwtUtils);
 
     @Test

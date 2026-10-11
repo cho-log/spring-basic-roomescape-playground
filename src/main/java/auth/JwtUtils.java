@@ -6,8 +6,12 @@ import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 
 public class JwtUtils {
-    private static final String SECRET_KEY = "Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=";
     private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private final String secretKey;
+
+    public JwtUtils(String secretKey) {
+        this.secretKey = secretKey;
+    }
 
     public String createToken(Long id, String name, String role) {
         return createToken(id, name, role, EXPIRATION_TIME);
@@ -23,13 +27,13 @@ public class JwtUtils {
                 .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiration)
-                .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .compact();
     }
 
     public Claims getClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

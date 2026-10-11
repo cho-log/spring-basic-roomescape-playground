@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtUtilsTest {
 
-    private final JwtUtils jwtUtils = new JwtUtils();
+    private final JwtUtils jwtUtils = new JwtUtils("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=");
 
     @Test
     void 유효한_토큰이면_로그인_정보를_반환한다() {
