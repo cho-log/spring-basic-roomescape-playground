@@ -1,5 +1,7 @@
 package roomescape.member;
 
+import auth.JwtUtils;
+import auth.TokenPayload;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -8,18 +10,18 @@ import roomescape.exception.ErrorCode;
 
 public class AdminInterceptor implements HandlerInterceptor {
 
-    private final MemberService memberService;
+    private final JwtUtils jwtUtils;
 
-    public AdminInterceptor(MemberService memberService) {
-        this.memberService = memberService;
+    public AdminInterceptor(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = TokenExtractor.extract(request.getCookies());
-        Member member = memberService.findByToken(token);
+        TokenPayload payload = jwtUtils.parse(token);
 
-        if (member.getRole() != Role.ADMIN) {
+        if (Role.valueOf(payload.getRole()) != Role.ADMIN) {
             throw new BusinessException(ErrorCode.NOT_ADMIN);
         }
         return true;
