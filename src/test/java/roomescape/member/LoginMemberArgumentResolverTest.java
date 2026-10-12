@@ -1,5 +1,7 @@
 package roomescape.member;
 
+import auth.JwtUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,7 @@ import static org.mockito.Mockito.mock;
 class LoginMemberArgumentResolverTest {
 
     @Mock
-    private MemberService memberService;
+    private JwtUtils jwtUtils;
 
     @Mock
     private NativeWebRequest webRequest;
@@ -29,7 +31,7 @@ class LoginMemberArgumentResolverTest {
 
     @BeforeEach
     void setUp() {
-        resolver = new LoginMemberArgumentResolver(memberService);
+        resolver = new LoginMemberArgumentResolver(jwtUtils);
     }
 
     @Test
@@ -49,7 +51,6 @@ class LoginMemberArgumentResolverTest {
     void LoginMember_타입이_아닌_경우_false를_반환한다() {
         // given
         MethodParameter parameter = mock(MethodParameter.class);
-        // LoginMember가 아닌 다른 타입(String.class)으로 설정
         given(parameter.getParameterType()).willReturn((Class) String.class);
 
         // when
@@ -66,8 +67,13 @@ class LoginMemberArgumentResolverTest {
         request.setCookies(new Cookie("token", "valid-token"));
         given(webRequest.getNativeRequest()).willReturn(request);
 
-        Member member = new Member(1L, "어드민", "admin@email.com", "ADMIN");
-        given(memberService.findMemberByToken("valid-token")).willReturn(member);
+        Claims claims = mock(Claims.class);
+        given(claims.getSubject()).willReturn("1");
+        given(claims.get("name", String.class)).willReturn("어드민");
+        given(claims.get("email", String.class)).willReturn("admin@email.com");
+        given(claims.get("role", String.class)).willReturn("ADMIN");
+
+        given(jwtUtils.getClaims("valid-token")).willReturn(claims);
 
         // when
         Object result = resolver.resolveArgument(null, null, webRequest, null);
@@ -83,7 +89,7 @@ class LoginMemberArgumentResolverTest {
     @Test
     void 쿠키가_없거나_토큰이_없으면_UnauthorizedException이_발생한다() {
         // given
-        MockHttpServletRequest request = new MockHttpServletRequest(); // 쿠키 설정 안함
+        MockHttpServletRequest request = new MockHttpServletRequest();
         given(webRequest.getNativeRequest()).willReturn(request);
 
         // when & then
