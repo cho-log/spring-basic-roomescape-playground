@@ -1,5 +1,7 @@
 package roomescape.auth;
 
+import auth.JwtUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import io.jsonwebtoken.JwtException;
@@ -8,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class LoginMemberResolver {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtils jwtUtils;
 
-    public LoginMemberResolver(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
+    public LoginMemberResolver(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     public LoginMember resolve(HttpServletRequest request) {
@@ -26,7 +28,12 @@ public class LoginMemberResolver {
         }
 
         try {
-            return jwtTokenProvider.getLoginMember(token);
+            Claims claims = jwtUtils.getClaims(token);
+
+            return new LoginMember(
+                    Long.valueOf(claims.getSubject()),
+                    claims.get("name", String.class),
+                    claims.get("role", String.class));
         } catch (JwtException e) {
             return null;
         }

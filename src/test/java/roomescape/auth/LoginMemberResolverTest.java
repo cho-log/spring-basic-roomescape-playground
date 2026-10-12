@@ -1,11 +1,11 @@
 package roomescape.auth;
 
+import auth.JwtUtils;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
-import roomescape.member.Member;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -13,9 +13,8 @@ import static org.mockito.Mockito.when;
 
 class LoginMemberResolverTest {
 
-    private final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider();
-    private final LoginMemberResolver loginMemberResolver = new LoginMemberResolver(jwtTokenProvider);
-    private final Member member = new Member(1L, "어드민", "admin@email.com", "ADMIN");
+    private final JwtUtils jwtUtils = new JwtUtils("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=");
+    private final LoginMemberResolver loginMemberResolver = new LoginMemberResolver(jwtUtils);
 
     @Test
     void 형식이_깨진_토큰이면_null을_반환한다() {
@@ -46,7 +45,7 @@ class LoginMemberResolverTest {
 
     @Test
     void 만료된_토큰이면_null을_반환한다() {
-        String expiredToken = jwtTokenProvider.createToken(member, -1000);
+        String expiredToken = jwtUtils.createToken(1L, "어드민", "ADMIN", -1000);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getCookies()).thenReturn(new Cookie[]{new Cookie("token", expiredToken)});
