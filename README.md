@@ -64,6 +64,14 @@
   - [x] 토큰에 회원 식별자와 이름을 담고, `LoginMember`는 토큰만으로 만든다.
   - [x] 권한 확인이 필요한 경우(`/admin/**`, 관리자 예약)에만 DB에서 회원을 조회한다.
 
+## 8단계 - Profile과 Resource
+
+- [x] `data.sql` 대신 애플리케이션 시작 시 데이터를 초기화하는 `CommandLineRunner`를 만든다.
+  - [x] 운영용 `DataLoader`는 사용자 정보만 초기화한다. (`@Profile("!test")`)
+  - [x] 테스트용 `TestDataLoader`는 테스트에 필요한 사전 값을 초기화한다. (`@Profile("test")`)
+  - [x] 테스트는 `@ActiveProfiles("test")`로 테스트 프로파일을 활성화한다.
+- [x] 토큰 생성에 필요한 비밀키 값을 `application.properties`로 분리한다.
+
 ---
 
 ## 서비스 정책
