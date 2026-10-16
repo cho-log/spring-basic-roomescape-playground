@@ -805,4 +805,126 @@ public class MissionStepTest {
                 .then()
                 .statusCode(201);
     }
+
+
+    @Test
+    @DisplayName("다른 예약의 대기 생성과 취소는 기존 대기 순위에 영향을 주지 않는다.")
+    void waitingRankIsIndependent() {
+        String adminToken = createToken("admin@email.com", "password");
+        String brownToken = createToken("brown@email.com", "password");
+
+        // 블랙 회원 생성
+        Map<String, String> memberParams = new HashMap<>();
+        memberParams.put("name", "블랙");
+        memberParams.put("email", "black@email.com");
+        memberParams.put("password", "password");
+
+        RestAssured.given()
+                .body(memberParams)
+                .contentType(ContentType.JSON)
+                .post("/members")
+                .then()
+                .statusCode(201);
+
+        String blackToken = createToken("black@email.com", "password");
+
+        // 예약 A
+        Map<String, String> paramsA = new HashMap<>();
+        paramsA.put("date", "2027-02-01");
+        paramsA.put("time", "1");
+        paramsA.put("theme", "1");
+
+        // 예약 B (날짜만 다름)
+        Map<String, String> paramsB = new HashMap<>();
+        paramsB.put("date", "2027-02-02");
+        paramsB.put("time", "1");
+        paramsB.put("theme", "1");
+
+        // 확정 예약 A, B 생성
+        RestAssured.given()
+                .body(paramsA)
+                .cookie("token", adminToken)
+                .contentType(ContentType.JSON)
+                .post("/reservations")
+                .then()
+                .statusCode(201);
+
+        RestAssured.given()
+                .body(paramsB)
+                .cookie("token", adminToken)
+                .contentType(ContentType.JSON)
+                .post("/reservations")
+                .then()
+                .statusCode(201);
+
+        // A의 첫 번째 대기자: 브라운
+        RestAssured.given()
+                .body(paramsA)
+                .cookie("token", brownToken)
+                .contentType(ContentType.JSON)
+                .post("/waitings")
+                .then()
+                .statusCode(201);
+
+        // A의 두 번째 대기자: 블랙
+        WaitingResponse blackWaiting = RestAssured.given()
+                .body(paramsA)
+                .cookie("token", blackToken)
+                .contentType(ContentType.JSON)
+                .post("/waitings")
+                .then()
+                .statusCode(201)
+                .extract().as(WaitingResponse.class);
+
+        // B의 대기자: 브라운
+        WaitingResponse otherWaiting = RestAssured.given()
+                .body(paramsB)
+                .cookie("token", brownToken)
+                .contentType(ContentType.JSON)
+                .post("/waitings")
+                .then()
+                .statusCode(201)
+                .extract().as(WaitingResponse.class);
+
+        // B의 대기가 생겨도 블랙은 2순위
+        List<MyReservationResponse> beforeCancel = RestAssured.given()
+                .cookie("token", blackToken)
+                .get("/reservations-mine")
+                .then()
+                .statusCode(200)
+                .extract().jsonPath()
+                .getList(".", MyReservationResponse.class);
+
+        String beforeStatus = beforeCancel.stream()
+                .filter(it -> blackWaiting.getId().equals(it.getId()))
+                .findFirst()
+                .map(MyReservationResponse::getStatus)
+                .orElse(null);
+
+        assertThat(beforeStatus).isEqualTo("2번째 예약대기");
+
+        // 다른 예약 B의 대기 취소
+        RestAssured.given()
+                .cookie("token", brownToken)
+                .delete("/waitings/" + otherWaiting.getId())
+                .then()
+                .statusCode(204);
+
+        // B의 대기가 취소되어도 블랙은 여전히 2순위
+        List<MyReservationResponse> afterCancel = RestAssured.given()
+                .cookie("token", blackToken)
+                .get("/reservations-mine")
+                .then()
+                .statusCode(200)
+                .extract().jsonPath()
+                .getList(".", MyReservationResponse.class);
+
+        String afterStatus = afterCancel.stream()
+                .filter(it -> blackWaiting.getId().equals(it.getId()))
+                .findFirst()
+                .map(MyReservationResponse::getStatus)
+                .orElse(null);
+
+        assertThat(afterStatus).isEqualTo("2번째 예약대기");
+    }
 }
