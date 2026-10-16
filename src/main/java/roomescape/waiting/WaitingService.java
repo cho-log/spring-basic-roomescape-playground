@@ -27,6 +27,20 @@ public class WaitingService {
         Time time = timeRepository.findById(request.getTime()).orElseThrow();
         Theme theme = themeRepository.findById(request.getTheme()).orElseThrow();
 
+        if (time.isDeleted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "삭제된 시간은 예약 대기할 수 없습니다."
+            );
+        }
+
+        if (theme.isDeleted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "삭제된 테마는 예약 대기할 수 없습니다."
+            );
+        }
+
         Waiting waiting = new Waiting(
                 request.getDate(),
                 time,

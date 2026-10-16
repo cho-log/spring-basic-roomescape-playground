@@ -28,6 +28,23 @@ public class ReservationService {
     }
 
     public ReservationResponse save(ReservationRequest reservationRequest, Member member) {
+        Time time = timeRepository.findById(reservationRequest.getTime()).orElseThrow();
+        Theme theme = themeRepository.findById(reservationRequest.getTheme()).orElseThrow();
+
+        if (time.isDeleted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "삭제된 시간은 예약할 수 없습니다."
+            );
+        }
+
+        if (theme.isDeleted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "삭제된 테마는 예약할 수 없습니다."
+            );
+        }
+
         boolean exists = reservationRepository.existsByDateAndTimeIdAndThemeId(
                 reservationRequest.getDate(),
                 reservationRequest.getTime(),
@@ -40,9 +57,6 @@ public class ReservationService {
                     "이미 예약된 날짜와 시간입니다."
             );
         }
-
-        Time time = timeRepository.findById(reservationRequest.getTime()).orElseThrow();
-        Theme theme = themeRepository.findById(reservationRequest.getTheme()).orElseThrow();
 
         String name;
         if (member != null) {

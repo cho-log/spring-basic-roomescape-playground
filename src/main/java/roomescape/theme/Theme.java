@@ -45,4 +45,8 @@ public class Theme {
     public String getDescription() {
         return description;
     }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
 }
