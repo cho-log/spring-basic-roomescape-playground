@@ -342,6 +342,15 @@ public class MissionStepTest {
         params.put("time", "1");
         params.put("theme", "1");
 
+        // 먼저 확정 예약 생성
+        RestAssured.given()
+                .body(params)
+                .cookie("token", brownToken)
+                .contentType(ContentType.JSON)
+                .post("/reservations")
+                .then()
+                .statusCode(201);
+
         // 예약 대기 생성
         RestAssured.given()
                 .body(params)
@@ -351,7 +360,7 @@ public class MissionStepTest {
                 .then()
                 .statusCode(201);
 
-        // 같은 회원이 동일한 조건으로 다시 신청하면 실패
+        // 같은 회원이 다시 대기 신청하면 실패
         RestAssured.given()
                 .body(params)
                 .cookie("token", brownToken)
@@ -747,5 +756,53 @@ public class MissionStepTest {
                 .delete("/reservations/" + reservationId)
                 .then()
                 .statusCode(204);
+    }
+
+    @Test
+    @DisplayName("확정 예약이 없는 시간에는 예약 대기를 신청할 수 없다.")
+    void waitingWithoutReservation() {
+        String brownToken = createToken("brown@email.com", "password");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("date", "2027-01-10");
+        params.put("time", "1");
+        params.put("theme", "1");
+
+        RestAssured.given()
+                .body(params)
+                .cookie("token", brownToken)
+                .contentType(ContentType.JSON)
+                .post("/waitings")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("확정 예약이 있는 시간에는 예약 대기를 신청할 수 있다.")
+    void waitingWithReservation() {
+        String brownToken = createToken("brown@email.com", "password");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("date", "2027-01-11");
+        params.put("time", "1");
+        params.put("theme", "1");
+
+        // 확정 예약 생성
+        RestAssured.given()
+                .body(params)
+                .cookie("token", brownToken)
+                .contentType(ContentType.JSON)
+                .post("/reservations")
+                .then()
+                .statusCode(201);
+
+        // 예약이 존재하므로 대기 신청 성공
+        RestAssured.given()
+                .body(params)
+                .cookie("token", brownToken)
+                .contentType(ContentType.JSON)
+                .post("/waitings")
+                .then()
+                .statusCode(201);
     }
 }
