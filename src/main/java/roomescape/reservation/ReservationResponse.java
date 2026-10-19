@@ -1,6 +1,7 @@
 package roomescape.reservation;
 
 public class ReservationResponse {
+
     private Long id;
     private String name;
     private String theme;
