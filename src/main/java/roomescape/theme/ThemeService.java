@@ -17,7 +17,9 @@ public class ThemeService {
         return themeRepository.findAllByDeletedFalse();
     }
 
-    public Theme save(Theme theme) {
+    public Theme save(ThemeRequest request) {
+        Theme theme = new Theme(request.name(), request.description());
+
         return themeRepository.save(theme);
     }
 

@@ -35,7 +35,9 @@ public class TimeService {
         return timeRepository.findAllByDeletedFalse();
     }
 
-    public Time save(Time time) {
+    public Time save(TimeRequest request) {
+        Time time = new Time(request.value());
+
         return timeRepository.save(time);
     }
 
