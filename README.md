@@ -114,3 +114,131 @@ name 없음 → LoginMember로 Member 조회
 
 - 일반 회원의 `/admin` 접근 시 `401 Unauthorized` 확인
 - 관리자 회원의 `/admin` 접근 시 `200 OK` 확인
+
+--
+
+## Spring Data JPA (4~6단계)
+
+### 미션 소개
+
+기존 JDBC 기반 데이터 접근 방식을 Spring Data JPA로 전환하고, 로그인 사용자의 예약 조회와 예약 대기 기능을 구현
+
+### 주요 구현 사항
+
+#### JPA 기반 데이터 접근
+
+기존 `JdbcTemplate` 기반 DAO를 `JpaRepository` 기반 Repository로 전환하였습니다.
+
+`Reservation`, `Member`, `Theme`, `Time` 간 관계는 JPA 연관관계로 매핑하고, 필요한 조회는 Query Method와 JPQL을 활용하였습니다.
+
+#### 내 예약 목록 조회
+
+로그인한 사용자의 `memberId`를 기준으로 예약 목록을 조회하도록 구현하였습니다.
+
+일반 사용자 예약은 `member_id`를 저장하고, 관리자 화면에서 생성한 예약은 기존처럼 `name` 값을 저장하도록 구성하였습니다.
+
+```text
+일반 사용자 예약 → member_id 저장
+관리자 예약 → name 저장
+```
+
+#### 예약 대기 신청
+
+예약된 날짜, 테마, 시간에 대해 예약 대기를 신청할 수 있도록 구현하였습니다.
+
+```http
+POST /waitings
+Content-Type: application/json
+Cookie: token=...
+```
+
+```json
+{
+  "date": "2024-03-01",
+  "theme": 1,
+  "time": 1
+}
+```
+
+응답에는 생성된 예약 대기 ID와 현재 대기 순서를 포함합니다.
+
+```json
+{
+  "id": 1,
+  "waitingNumber": 1
+}
+```
+
+#### 예약 대기 취소
+
+본인이 신청한 예약 대기만 취소할 수 있도록 구현하였습니다.
+
+```http
+DELETE /waitings/{id}
+```
+
+성공 시 `204 No Content`를 응답합니다.
+
+#### 예약 대기 비즈니스 규칙
+
+예약 대기 생성 시 다음 조건을 검증합니다.
+
+- 해당 날짜, 테마, 시간에 기존 예약이 존재해야 한다.
+- 이미 해당 예약을 가지고 있는 사용자는 대기할 수 없다.
+- 동일한 예약에 중복으로 대기할 수 없다.
+- 다른 사용자의 예약 대기는 취소할 수 없다.
+
+#### 예약 대기 순번 조회
+
+같은 날짜, 테마, 시간의 예약 대기 중 현재 대기보다 먼저 생성된 개수를 JPQL로 조회합니다.
+
+```text
+먼저 생성된 대기 수 + 1
+→ 현재 대기 순번
+```
+
+이를 이용하여 내 예약 목록에서 다음과 같이 상태를 표시합니다.
+
+```text
+예약
+1번째 예약대기
+2번째 예약대기
+```
+
+### 내 예약 목록 통합 조회
+
+`GET /reservations-mine` 요청 시 확정된 예약뿐만 아니라 예약 대기 목록도 함께 조회하여 반환합니다.
+
+예약과 예약 대기는 `MyReservationResponse`로 통합하여 응답하고, `status`를 통해 상태를 구분합니다.
+
+### 주요 객체
+
+| 객체 | 역할 |
+| --- | --- |
+| `Reservation` | 확정된 예약 정보를 관리 |
+| `Waiting` | 예약 대기 정보를 관리 |
+| `WaitingWithRank` | 예약 대기 정보와 대기 순번을 함께 표현 |
+| `WaitingRequest` | 예약 대기 생성 요청 DTO |
+| `WaitingResponse` | 예약 대기 생성 결과 응답 DTO |
+| `MyReservationResponse` | 내 예약 및 예약 대기 목록 응답 DTO |
+| `ReservationRepository` | 예약 데이터 접근 |
+| `WaitingRepository` | 예약 대기 데이터 접근 및 순번 조회 |
+
+### 테스트
+
+#### 4단계 - JPA 전환
+
+- `TestEntityManager`를 이용한 `Time` 엔티티 저장 확인
+- `TimeRepository`를 이용한 엔티티 조회 확인
+
+#### 5단계 - 내 예약 목록 조회
+
+- 관리자 로그인 후 `/reservations-mine` 요청 시 `200 OK` 응답 확인
+- 로그인 사용자의 예약 목록이 정상적으로 조회되는지 확인
+- 조회된 예약 목록의 개수 확인
+
+#### 6단계 - 예약 대기 기능
+
+- 예약 대기 생성 시 `201 Created` 응답 확인
+- 예약 대기 생성 후 `/reservations-mine` 조회 시 대기 항목 포함 여부 확인
+- 예약 대기 상태가 `1번째 예약대기` 형식으로 반환되는지 확인
