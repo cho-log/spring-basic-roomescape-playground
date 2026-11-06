@@ -2,7 +2,7 @@ package roomescape.waiting;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import roomescape.member.LoginMember;
+import roomescape.auth.LoginMember;
 
 import java.net.URI;
 

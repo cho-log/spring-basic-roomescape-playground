@@ -2,7 +2,7 @@ package roomescape.reservation;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import roomescape.member.LoginMember;
+import roomescape.auth.LoginMember;
 
 import java.util.List;
 

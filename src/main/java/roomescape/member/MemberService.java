@@ -32,7 +32,7 @@ public class MemberService {
         );
     }
     public List<MemberResponse> findAll() {
-        return memberDao.findAll().stream()
+        return memberRepository.findAll().stream()
                 .map(member -> new MemberResponse(
                         member.getId(), member.getName(), member.getEmail()
                 ))

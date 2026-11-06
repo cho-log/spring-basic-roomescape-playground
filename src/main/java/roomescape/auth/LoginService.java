@@ -1,7 +1,7 @@
 package roomescape.auth;
 
 import roomescape.member.Member;
-import roomescape.member.MemberDao;
+import roomescape.member.MemberRepository;
 
 import io.jsonwebtoken.JwtException;
 import org.springframework.stereotype.Service;

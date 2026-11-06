@@ -2,8 +2,8 @@ package roomescape.reservation;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import roomescape.member.ForbiddenException;
-import roomescape.member.LoginMember;
+import roomescape.auth.ForbiddenException;
+import roomescape.auth.UnauthorizedException;
 import roomescape.member.Member;
 import roomescape.member.MemberRepository;
 import roomescape.theme.Theme;
@@ -38,26 +38,26 @@ public class ReservationService {
     @Transactional
     public ReservationResponse save(
             ReservationRequest request,
-            LoginMember loginMember
+            Long loginMemberId
     ) {
-        if (request.getDate() == null
-                || request.getTime() == null
-                || request.getTheme() == null) {
+        if (request.date() == null
+                || request.time() == null
+                || request.theme() == null) {
             throw new IllegalArgumentException(
                     "날짜, 시간, 테마를 입력해주세요."
             );
         }
 
-        String date = LocalDate.parse(request.getDate()).toString();
+        String date = LocalDate.parse(request.date()).toString();
 
-        Member member = findReservationMember(request, loginMember);
+        Member member = findReservationMember(request, loginMemberId);
 
-        Time time = timeRepository.findByIdAndDeletedFalse(request.getTime())
+        Time time = timeRepository.findByIdAndDeletedFalse(request.time())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 예약 시간입니다."
                 ));
 
-        Theme theme = themeRepository.findByIdAndDeletedFalse(request.getTheme())
+        Theme theme = themeRepository.findByIdAndDeletedFalse(request.theme())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 테마입니다."
                 ));
@@ -77,9 +77,11 @@ public class ReservationService {
 
     private Member findReservationMember(
             ReservationRequest request,
-            LoginMember loginMember
+            Long loginMemberId
     ) {
-        Long memberId = request.getMemberId();
+        Member loginMember = memberRepository.findById(loginMemberId)
+                .orElseThrow(() -> new UnauthorizedException("로그인한 회원을 찾을 수 없습니다."));
+        Long memberId = request.memberId();
 
         if (memberId == null) {
             memberId = loginMember.getId();
