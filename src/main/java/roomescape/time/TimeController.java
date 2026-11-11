@@ -28,12 +28,12 @@ public class TimeController {
 
     @AdminOnly
     @PostMapping("/times")
-    public ResponseEntity<Time> create(@RequestBody Time time) {
-        if (time.getValue() == null || time.getValue().isEmpty()) {
+    public ResponseEntity<Time> create(@RequestBody TimeRequest request) {
+        if (request.value() == null || request.value().isEmpty()) {
             throw new RuntimeException();
         }
 
-        Time newTime = timeService.save(time);
+        Time newTime = timeService.save(request);
         return ResponseEntity.created(URI.create("/times/" + newTime.getId())).body(newTime);
     }
 

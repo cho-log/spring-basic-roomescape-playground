@@ -12,4 +12,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleValidationException(MethodArgumentNotValidException e) {
         return ResponseEntity.badRequest().build();
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Void> handleRuntimeException(Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.badRequest().build();
+    }
 }

@@ -2,18 +2,18 @@ package roomescape.auth;
 
 import org.springframework.stereotype.Service;
 import roomescape.member.Member;
-import roomescape.member.MemberDao;
+import roomescape.member.MemberRepository;
 
 @Service
 public class AuthService {
-    private final MemberDao memberDao;
+    private final MemberRepository memberRepository;
 
-    public AuthService(MemberDao memberDao) {
-        this.memberDao = memberDao;
+    public AuthService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
     public Member authenticateMember(LoginRequest loginRequest) {
-        return memberDao.findByEmailAndPassword(
+        return memberRepository.findByEmailAndPassword(
                 loginRequest.getEmail(),
                 loginRequest.getPassword()
         ).orElseThrow(
