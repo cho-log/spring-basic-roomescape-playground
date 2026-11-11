@@ -52,7 +52,7 @@ public class MissionStepTest {
         String token = createToken("admin@email.com", "password");
 
         Map<String, String> params = new HashMap<>();
-        params.put("date", "2024-03-01");
+        params.put("date", "2024-03-02");
         params.put("time", "1");
         params.put("theme", "1");
 
@@ -70,6 +70,7 @@ public class MissionStepTest {
                 .isEqualTo("어드민");
 
         params.put("memberId", "2");
+        params.put("time", "2");
 
         ExtractableResponse<Response> adminResponse =
                 RestAssured.given().log().all()
@@ -233,6 +234,7 @@ public class MissionStepTest {
 
         String adminToken = createToken("admin@email.com", "password");
 
+        int timeId = 1;
         for (Long memberId : new Long[]{2L, anotherBrownId}) {
             Long reservationId = RestAssured.given()
                     .contentType(ContentType.JSON)
@@ -240,7 +242,7 @@ public class MissionStepTest {
                     .body(Map.of(
                             "memberId", memberId,
                             "date", "2024-03-02",
-                            "time", 1,
+                            "time", timeId++,
                             "theme", 1
                     ))
                     .when().post("/reservations")

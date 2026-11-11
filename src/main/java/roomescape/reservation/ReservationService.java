@@ -1,62 +1,87 @@
 package roomescape.reservation;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import roomescape.auth.ForbiddenException;
 import roomescape.auth.UnauthorizedException;
 import roomescape.member.Member;
-import roomescape.member.MemberDao;
+import roomescape.member.MemberRepository;
+import roomescape.theme.Theme;
+import roomescape.theme.ThemeRepository;
+import roomescape.time.Time;
+import roomescape.time.TimeRepository;
 
+import java.time.LocalDate;
 import java.util.List;
-import org.springframework.dao.EmptyResultDataAccessException;
-import roomescape.auth.ForbiddenException;
 
 @Service
+@Transactional(readOnly = true)
 public class ReservationService {
 
-    private final ReservationDao reservationDao;
-    private final MemberDao memberDao;
+    private final ReservationRepository reservationRepository;
+    private final MemberRepository memberRepository;
+    private final TimeRepository timeRepository;
+    private final ThemeRepository themeRepository;
 
     public ReservationService(
-            ReservationDao reservationDao,
-            MemberDao memberDao
+            ReservationRepository reservationRepository,
+            MemberRepository memberRepository,
+            TimeRepository timeRepository,
+            ThemeRepository themeRepository
     ) {
-        this.reservationDao = reservationDao;
-        this.memberDao = memberDao;
+        this.reservationRepository = reservationRepository;
+        this.memberRepository = memberRepository;
+        this.timeRepository = timeRepository;
+        this.themeRepository = themeRepository;
     }
 
+    @Transactional
     public ReservationResponse save(
-            ReservationRequest reservationRequest,
+            ReservationRequest request,
             Long loginMemberId
     ) {
-        Member member = findReservationMember(
-                reservationRequest,
-                loginMemberId
+        if (request.date() == null
+                || request.time() == null
+                || request.theme() == null) {
+            throw new IllegalArgumentException(
+                    "날짜, 시간, 테마를 입력해주세요."
+            );
+        }
+
+        String date = LocalDate.parse(request.date()).toString();
+
+        Member member = findReservationMember(request, loginMemberId);
+
+        Time time = timeRepository.findByIdAndDeletedFalse(request.time())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 예약 시간입니다."
+                ));
+
+        Theme theme = themeRepository.findByIdAndDeletedFalse(request.theme())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 테마입니다."
+                ));
+
+        if (reservationRepository.existsByDateAndTheme_IdAndTime_Id(
+                date, theme.getId(), time.getId()
+        )) {
+            throw new IllegalArgumentException("이미 예약된 시간입니다.");
+        }
+
+        Reservation reservation = reservationRepository.save(
+                new Reservation(member, date, time, theme)
         );
 
-        Reservation reservation = reservationDao.save(
-                reservationRequest,
-                member
-        );
-
-        return new ReservationResponse(
-                reservation.getId(),
-                reservation.getName(),
-                reservation.getTheme().getName(),
-                reservation.getDate(),
-                reservation.getTime().getValue()
-        );
+        return toResponse(reservation);
     }
 
     private Member findReservationMember(
-            ReservationRequest reservationRequest,
+            ReservationRequest request,
             Long loginMemberId
     ) {
-        Member loginMember;
-        try {
-            loginMember = memberDao.findById(loginMemberId);
-        } catch (EmptyResultDataAccessException e) {
-            throw new UnauthorizedException("로그인한 회원을 찾을 수 없습니다.");
-        }
-        Long memberId = reservationRequest.memberId();
+        Member loginMember = memberRepository.findById(loginMemberId)
+                .orElseThrow(() -> new UnauthorizedException("로그인한 회원을 찾을 수 없습니다."));
+        Long memberId = request.memberId();
 
         if (memberId == null) {
             memberId = loginMember.getId();
@@ -69,26 +94,30 @@ public class ReservationService {
             );
         }
 
-        try {
-            return memberDao.findById(memberId);
-        } catch (EmptyResultDataAccessException e) {
-            throw new IllegalArgumentException("존재하지 않는 회원입니다.");
-        }
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 회원입니다."
+                ));
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        reservationDao.deleteById(id);
+        reservationRepository.deleteById(id);
     }
 
     public List<ReservationResponse> findAll() {
-        return reservationDao.findAll().stream()
-                .map(reservation -> new ReservationResponse(
-                        reservation.getId(),
-                        reservation.getName(),
-                        reservation.getTheme().getName(),
-                        reservation.getDate(),
-                        reservation.getTime().getValue()
-                ))
+        return reservationRepository.findAllByOrderByIdAsc().stream()
+                .map(this::toResponse)
                 .toList();
+    }
+
+    private ReservationResponse toResponse(Reservation reservation) {
+        return new ReservationResponse(
+                reservation.getId(),
+                reservation.getName(),
+                reservation.getTheme().getName(),
+                reservation.getDate(),
+                reservation.getTime().getValue()
+        );
     }
 }
