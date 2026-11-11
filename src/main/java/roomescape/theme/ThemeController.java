@@ -15,28 +15,28 @@ import java.util.List;
 
 @RestController
 public class ThemeController {
-    private ThemeDao themeDao;
+    private ThemeService themeService;
 
-    public ThemeController(ThemeDao themeDao) {
-        this.themeDao = themeDao;
+    public ThemeController(ThemeService themeService) {
+        this.themeService = themeService;
     }
 
     @AdminOnly
     @PostMapping("/themes")
     public ResponseEntity<Theme> createTheme(@Valid @RequestBody Theme theme) {
-        Theme newTheme = themeDao.save(theme);
+        Theme newTheme = themeService.save(theme);
         return ResponseEntity.created(URI.create("/themes/" + newTheme.getId())).body(newTheme);
     }
 
     @GetMapping("/themes")
     public ResponseEntity<List<Theme>> list() {
-        return ResponseEntity.ok(themeDao.findAll());
+        return ResponseEntity.ok(themeService.findAll());
     }
 
     @AdminOnly
     @DeleteMapping("/themes/{id}")
     public ResponseEntity<Void> deleteTheme(@PathVariable Long id) {
-        themeDao.deleteById(id);
+        themeService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

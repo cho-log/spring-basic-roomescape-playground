@@ -28,6 +28,11 @@ public class ReservationController {
         return reservationService.findAll();
     }
 
+    @GetMapping("/reservations-mine")
+    public List<MyReservationResponse> mine(LoginMember loginMember) {
+        return reservationService.findMine(loginMember);
+    }
+
     @PostMapping("/reservations")
     public ResponseEntity create(@Valid @RequestBody ReservationRequest reservationRequest, LoginMember loginMember) {
         ReservationResponse reservation = reservationService.save(reservationRequest, loginMember);
