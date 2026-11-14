@@ -43,4 +43,9 @@ public class ReservationController {
         reservationService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/reservations-mine")
+    public List<MyReservationResponse> listMine(LoginMember loginMember) {
+        return reservationService.findMine(loginMember);
+    }
 }

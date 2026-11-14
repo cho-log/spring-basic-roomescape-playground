@@ -1,11 +1,13 @@
 package roomescape.time;
 
+import java.time.LocalTime;
+
 public class AvailableTime {
     private Long timeId;
-    private String time;
+    private LocalTime time;
     private boolean booked;
 
-    public AvailableTime(Long timeId, String time, boolean booked) {
+    public AvailableTime(Long timeId, LocalTime time, boolean booked) {
         this.timeId = timeId;
         this.time = time;
         this.booked = booked;
@@ -15,7 +17,7 @@ public class AvailableTime {
         return timeId;
     }
 
-    public String getTime() {
+    public LocalTime getTime() {
         return time;
     }
 
