@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import roomescape.config.TestDataLoader;
 import roomescape.reservation.domain.Reservation;
 
 import java.util.List;
@@ -15,6 +18,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
+@ActiveProfiles("test")
+@Import(TestDataLoader.class)
 class ReservationRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;

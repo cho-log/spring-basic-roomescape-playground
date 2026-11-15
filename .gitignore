@@ -35,3 +35,16 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local AI notes ###
+/ai-notes/
+
+### Local environment and runtime files ###
+.env
+.env.*
+!.env.example
+!.env.sample
+*.log
+*.pid
+/roomescape-run/
+deploy.lock
