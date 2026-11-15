@@ -1,13 +1,17 @@
 package roomescape;
 
+import auth.JwtUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import roomescape.reservation.controller.dto.MyReservationResponse;
 import roomescape.reservation.controller.dto.ReservationResponse;
 import roomescape.waiting.WaitingResponse;
@@ -20,7 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@ActiveProfiles("test")
 public class MissionStepTest {
+
+    @Value("${roomescape.auth.jwt.secret}")
+    private String secretKey;
 
     private String createToken(String email, String password) {
         Map<String, String> params = new HashMap<>();
@@ -192,5 +200,18 @@ public class MissionStepTest {
                 .orElse(null);
 
         assertThat(status).isEqualTo("1번째 예약대기");
+    }
+
+    @Test
+    @DisplayName("JWT 인증은 외부 패키지로 분리하고, @Component 없이 설정 클래스에서 빈으로 등록한다")
+    void test_JwtUtils는_Component_애노테이션_없이_동작() {
+        Component componentAnnotation = JwtUtils.class.getAnnotation(Component.class);
+        assertThat(componentAnnotation).isNull();
+    }
+
+    @Test
+    @DisplayName("토큰 생성에 필요한 비밀키는 application.properties에서 가져와서 사용한다")
+    void test_비밀키는_properties_파일에서_가져와서_사용() {
+        assertThat(secretKey).isNotBlank();
     }
 }

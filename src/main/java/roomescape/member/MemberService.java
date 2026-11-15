@@ -1,18 +1,18 @@
 package roomescape.member;
 
 import org.springframework.stereotype.Service;
-import roomescape.auth.JwtTokenProvider;
+import auth.JwtUtils;
 import roomescape.exception.BusinessException;
 import roomescape.exception.ErrorCode;
 
 @Service
 public class MemberService {
     private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUtils jwtUtils;
 
-    public MemberService(MemberRepository memberRepository, JwtTokenProvider jwtTokenProvider) {
+    public MemberService(MemberRepository memberRepository, JwtUtils jwtUtils) {
         this.memberRepository = memberRepository;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.jwtUtils = jwtUtils;
     }
 
     public MemberResponse createMember(MemberRequest memberRequest) {
@@ -23,12 +23,6 @@ public class MemberService {
     public String login(LoginRequest loginRequest) {
         Member member = memberRepository.findByEmailAndPassword(loginRequest.getEmail(), loginRequest.getPassword())
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
-        return jwtTokenProvider.createToken(member.getId());
-    }
-
-    public Member findByToken(String token) {
-        Long memberId = jwtTokenProvider.getMemberId(token);
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        return jwtUtils.createToken(member.getId(), member.getName(), member.getRole().name());
     }
 }
