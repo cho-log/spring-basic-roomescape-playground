@@ -1,5 +1,7 @@
 package roomescape.member;
 
+import auth.LoginMember;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -7,12 +9,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Import;
-import roomescape.member.session.MemberSessionStore;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import roomescape.global.config.AuthConfig;
 import roomescape.member.exception.MemberErrorCode;
 import roomescape.member.exception.MemberException;
 
@@ -22,7 +23,7 @@ import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(MemberSessionStore.class)
+@Import(AuthConfig.class)
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
     private static final String EMAIL = "admin@email.com";

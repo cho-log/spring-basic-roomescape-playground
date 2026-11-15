@@ -42,6 +42,7 @@ class MemberIntegrationTest extends IntegrationTestSupport {
 
         // then
         assertThat(logoutResponse.detailedCookie("token").getMaxAge()).isZero();
+        assertThat(logoutResponse.detailedCookie("token").getPath()).isEqualTo("/");
 
         ExtractableResponse<Response> checkResponse = RestAssured.given()
                 .cookie("token", token)

@@ -1,5 +1,7 @@
 package roomescape.member;
 
+import auth.LoginMember;
+
 public record LoginCheckResponse(
         String name
 ) {

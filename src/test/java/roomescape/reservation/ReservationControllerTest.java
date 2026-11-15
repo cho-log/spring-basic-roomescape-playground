@@ -1,5 +1,6 @@
 package roomescape.reservation;
 
+import auth.LoginMember;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,12 +8,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Import;
-import roomescape.member.session.MemberSessionStore;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
-import roomescape.member.LoginMember;
+import roomescape.global.config.AuthConfig;
 import roomescape.theme.Theme;
 import roomescape.time.Time;
 import roomescape.waiting.Waiting;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(MemberSessionStore.class)
+@Import(AuthConfig.class)
 @WebMvcTest(ReservationController.class)
 class ReservationControllerTest {
     @Autowired

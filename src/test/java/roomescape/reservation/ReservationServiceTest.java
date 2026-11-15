@@ -7,6 +7,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import roomescape.global.init.TestDataLoader;
 import roomescape.member.Member;
 import roomescape.reservation.exception.ReservationErrorCode;
 import roomescape.reservation.exception.ReservationException;
@@ -28,7 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
-@Import(ReservationService.class)
+@ActiveProfiles("test")
+@Import({ReservationService.class, TestDataLoader.class})
 class ReservationServiceTest {
     @Autowired
     private ReservationService reservationService;

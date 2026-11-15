@@ -1,24 +1,23 @@
 package roomescape.member.resolver;
 
+import auth.LoginMember;
+import auth.MemberSessionManager;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import roomescape.member.session.MemberSessionStore;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import roomescape.member.LoginMember;
 import roomescape.member.exception.MemberErrorCode;
 import roomescape.member.exception.MemberException;
 
 @Component
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
-    private final MemberSessionStore memberSessionStore;
+    private final MemberSessionManager memberSessionManager;
 
-    public LoginMemberArgumentResolver(MemberSessionStore memberSessionStore) {
-        this.memberSessionStore = memberSessionStore;
+    public LoginMemberArgumentResolver(MemberSessionManager memberSessionManager) {
+        this.memberSessionManager = memberSessionManager;
     }
 
     @Override
@@ -35,16 +34,7 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
     ) {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new MemberException(MemberErrorCode.LOGIN_REQUIRED);
-        }
-
-        LoginMember loginMember = memberSessionStore.getLoginMember(session);
-        if (loginMember == null) {
-            throw new MemberException(MemberErrorCode.LOGIN_REQUIRED);
-        }
-
-        return loginMember;
+        return memberSessionManager.findLoginMember(request)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.LOGIN_REQUIRED));
     }
 }

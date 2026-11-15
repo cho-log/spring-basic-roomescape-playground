@@ -1,10 +1,9 @@
 package roomescape.member;
 
-import jakarta.servlet.http.Cookie;
+import auth.LoginMember;
+import auth.MemberSessionManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import roomescape.member.session.MemberSessionStore;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +16,11 @@ import java.net.URI;
 @RestController
 public class MemberController {
     private final MemberService memberService;
-    private final MemberSessionStore memberSessionStore;
+    private final MemberSessionManager memberSessionManager;
 
-    public MemberController(MemberService memberService, MemberSessionStore memberSessionStore) {
+    public MemberController(MemberService memberService, MemberSessionManager memberSessionManager) {
         this.memberService = memberService;
-        this.memberSessionStore = memberSessionStore;
+        this.memberSessionManager = memberSessionManager;
     }
 
     @PostMapping("/members")
@@ -34,17 +33,8 @@ public class MemberController {
     public ResponseEntity<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response) {
-        HttpSession session = request.getSession(false);
+        memberSessionManager.logout(request, response);
 
-        if (session != null) {
-            session.invalidate();
-        }
-
-        Cookie cookie = new Cookie("token", "");
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
         return ResponseEntity.ok().build();
     }
 
@@ -55,11 +45,12 @@ public class MemberController {
     ) {
         Member member = memberService.login(loginRequest.email(), loginRequest.password());
 
-        LoginMember loginMember = LoginMember.from(member);
-
-        HttpSession session = request.getSession();
-        request.changeSessionId();
-        memberSessionStore.saveLoginMember(session, loginMember);
+        LoginMember loginMember = new LoginMember(
+                member.getId(),
+                member.getName(),
+                member.getRole()
+        );
+        memberSessionManager.login(request, loginMember);
 
         return ResponseEntity.ok().build();
     }
