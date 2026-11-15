@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import roomescape.domain.member.entity.Member;
 import roomescape.domain.member.repository.MemberRepository;
@@ -13,6 +14,9 @@ import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.repository.TimeRepository;
 import roomescape.domain.waiting.entity.ReserveWaiting;
 import roomescape.domain.waiting.repository.ReserveWaitingRepository;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -22,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import({SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class ReserveWaitingRepositoryTest {
 
     private String nickname = "Alice";
@@ -125,7 +130,7 @@ public class ReserveWaitingRepositoryTest {
         Member member = saveMember("Alice");
 
         // when
-        Optional<ReserveWaiting> reserveWaiting = reserveWaitingRepository.findByIdAndMemberId(member.getId(), 1L);
+        Optional<ReserveWaiting> reserveWaiting = reserveWaitingRepository.findByIdAndMemberId(1L, member.getId());
 
         // then
         assertThat(reserveWaiting).isEmpty();

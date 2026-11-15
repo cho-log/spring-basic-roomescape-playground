@@ -1,13 +1,13 @@
 package roomescape.domain.auth;
 
+import auth.support.annotation.AdminOnly;
+import auth.support.annotation.LoginRequired;
+import auth.support.annotation.Public;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import roomescape.domain.auth.web.support.annotation.AdminOnly;
-import roomescape.domain.auth.web.support.annotation.LoginRequired;
-import roomescape.domain.auth.web.support.annotation.Public;
 
 import java.util.ArrayList;
 import java.util.List;

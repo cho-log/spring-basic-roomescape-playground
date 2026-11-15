@@ -5,10 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import roomescape.domain.waiting.service.ReserveWaitingService;
 import roomescape.domain.waiting.service.result.WaitingWithRank;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
 import roomescape.global.exception.BadRequestException;
-import roomescape.global.exception.ConflictException;
 import roomescape.global.exception.NotFoundException;
 
 import java.time.LocalDate;
@@ -17,7 +20,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(ReserveWaitingService.class)
+@Import({ReserveWaitingService.class, SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class ReserveWaitingServiceTest {
 
     private final Long memberId = 2L;
@@ -43,7 +46,7 @@ public class ReserveWaitingServiceTest {
     void createReserveWaiting을_존재하지_않는_timeId로_호출하면_예외가_발생한다() {
         // then
         Assertions.assertThrows(
-                NotFoundException.class,
+                DataIntegrityViolationException.class,
 
                 // when
                 () -> reserveWaitingService.createReserveWaiting(memberId, date, -1L, themeId)
@@ -54,10 +57,10 @@ public class ReserveWaitingServiceTest {
     void createReserveWaiting을_존재하지_않는_themeId로_호출하면_예외가_발생한다() {
         // then
         Assertions.assertThrows(
-                NotFoundException.class,
+                DataIntegrityViolationException.class,
 
                 // when
-                () -> reserveWaitingService.createReserveWaiting(memberId, date, -1L, themeId)
+                () -> reserveWaitingService.createReserveWaiting(memberId, date, timeId, -1L)
         );
     }
 
@@ -76,7 +79,7 @@ public class ReserveWaitingServiceTest {
     void 이미_예약_대기한_조합으로_createReserveWaiting을_호출하면_예외가_발생한다() {
         // then
         Assertions.assertThrows(
-                ConflictException.class,
+                DataIntegrityViolationException.class,
                 () -> reserveWaitingService.createReserveWaiting(memberId, date, timeId, themeId)
         );
     }
@@ -110,7 +113,7 @@ public class ReserveWaitingServiceTest {
         // when
         Assertions.assertThrows(
                 NotFoundException.class,
-                () -> reserveWaitingService.deleteReserveWaiting(1L, 2L)
+                () -> reserveWaitingService.deleteReserveWaiting(1L, 1L)
         );
     }
 

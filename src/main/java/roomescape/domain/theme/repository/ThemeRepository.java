@@ -1,8 +1,7 @@
 package roomescape.domain.theme.repository;
 
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import roomescape.domain.theme.entity.Theme;
 
-public interface ThemeRepository extends ListCrudRepository<Theme, Long> {
-    boolean existsByName(String name);
+public interface ThemeRepository extends JpaRepository<Theme, Long> {
 }

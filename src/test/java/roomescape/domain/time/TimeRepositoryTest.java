@@ -3,14 +3,19 @@ package roomescape.domain.time;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.repository.TimeRepository;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
 
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import({SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class TimeRepositoryTest {
 
     private final LocalTime value = LocalTime.of(11, 0);

@@ -1,18 +1,21 @@
 package roomescape.domain.auth;
 
+import auth.principal.LoginMember;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import roomescape.domain.auth.principal.LoginMember;
 import roomescape.domain.auth.service.AuthService;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
 import roomescape.global.exception.UnauthorizedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(AuthService.class)
+@Import({AuthService.class, SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class AuthServiceTest {
 
     private String name = "더미_유저";

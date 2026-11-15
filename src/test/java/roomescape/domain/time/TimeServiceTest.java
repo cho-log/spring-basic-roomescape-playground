@@ -9,6 +9,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import roomescape.domain.time.entity.AvailableTime;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.service.TimeService;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
+import roomescape.global.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -18,7 +22,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(TimeService.class)
+@Import({TimeService.class, SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class TimeServiceTest {
 
     private final LocalTime value = LocalTime.of(3, 0).truncatedTo(ChronoUnit.MINUTES);
@@ -71,13 +75,12 @@ public class TimeServiceTest {
     }
 
     @Test
-    void 저장된_적_없는_ID로_deleteById를_호출하면_조용히_넘어간다() {
-        // when
-        timeService.deleteById(-1L);
-        List<Time> allTimes = timeService.findAll();
-
-        // then
-        assertThat(allTimes).hasSize(1);
+    void 저장된_적_없는_ID로_deleteById를_호출하면_예외를_던진다() {
+        Assertions.assertThrows(
+                NotFoundException.class,
+                // when
+                () -> timeService.deleteById(-1L)
+        );
     }
 
     @Test

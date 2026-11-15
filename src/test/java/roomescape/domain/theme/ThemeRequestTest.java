@@ -89,6 +89,39 @@ public class ThemeRequestTest {
         ).isTrue();
     }
 
+    @Test
+    void name필드가_255자를_초과하는_ThemeRequest를_생성하면_예외를_던진다() {
+        // then
+        assertThat(
+                hasViolateInRequest(
+                        // given
+                        new ThemeRequest("a".repeat(256), description)
+                )
+        ).isTrue();
+    }
+
+    @Test
+    void description필드가_255자를_초과하는_ThemeRequest를_생성하면_예외를_던진다() {
+        // then
+        assertThat(
+                hasViolateInRequest(
+                        // given
+                        new ThemeRequest(name, "a".repeat(256))
+                )
+        ).isTrue();
+    }
+
+    @Test
+    void name과_description필드가_255자인_ThemeRequest는_정상적으로_생성된다() {
+        // then
+        assertThat(
+                hasViolateInRequest(
+                        // given
+                        new ThemeRequest("a".repeat(255), "a".repeat(255))
+                )
+        ).isFalse();
+    }
+
     // when
     private boolean hasViolateInRequest(ThemeRequest request) {
         Set<ConstraintViolation<ThemeRequest>> violations = validator.validate(request);

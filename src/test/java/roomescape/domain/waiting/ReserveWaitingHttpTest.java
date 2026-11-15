@@ -139,6 +139,22 @@ public class ReserveWaitingHttpTest {
     }
 
     @Test
+    void 존재하지_않는_테마로_예약_대기를_생성하면_404를_응답한다() {
+        // given
+        String token = createToken("admin@dummy.com", "dummy");
+        Map<String, String> params = waitingParams(LocalDate.now().plusDays(1), "1", "999");
+
+        // when & then
+        RestAssured.given()
+                .body(params)
+                .cookie("token", token)
+                .contentType(ContentType.JSON)
+                .when().post("/waitings")
+                .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
     void 이미_예약한_건에_예약_대기를_생성하면_400을_응답한다() {
         // given
         String token = createToken("user@dummy.com", "dummy");

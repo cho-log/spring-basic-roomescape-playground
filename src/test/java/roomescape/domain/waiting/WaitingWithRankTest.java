@@ -4,12 +4,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import roomescape.domain.member.entity.Member;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.waiting.entity.ReserveWaiting;
 import roomescape.domain.waiting.repository.ReserveWaitingRepository;
 import roomescape.domain.waiting.service.result.WaitingWithRank;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,6 +21,7 @@ import java.time.LocalTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import({SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class WaitingWithRankTest {
 
     @Autowired

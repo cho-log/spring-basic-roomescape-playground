@@ -1,4 +1,4 @@
-package roomescape.domain.auth.principal;
+package auth.principal;
 
 public record LoginMember (
         Long id,

@@ -39,7 +39,7 @@ public class ReservationServiceConcurrencyTest {
                     readyLatch.countDown();
                     startLatch.await();
 
-                    reservationService.createReservation(1L, "더미_유저", LocalDate.now().plusDays(1), 1L, 1L);
+                    reservationService.createReservationByAdmin("더미_유저", LocalDate.now().plusDays(1), 1L, 1L);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

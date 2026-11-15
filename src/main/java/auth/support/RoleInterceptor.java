@@ -1,22 +1,28 @@
-package roomescape.domain.auth.web.support;
+package auth.support;
 
+import auth.exception.AuthException;
+import auth.principal.LoginMember;
+import auth.support.annotation.AdminOnly;
+import auth.support.annotation.LoginRequired;
+import auth.support.annotation.Public;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import roomescape.domain.auth.principal.LoginMember;
-import roomescape.domain.auth.web.support.annotation.AdminOnly;
-import roomescape.domain.auth.web.support.annotation.LoginRequired;
-import roomescape.domain.auth.web.support.annotation.Public;
-import roomescape.global.exception.ForbiddenException;
-import roomescape.global.exception.UnauthorizedException;
 
 public class RoleInterceptor implements HandlerInterceptor {
 
+    private final Logger log = LoggerFactory.getLogger(RoleInterceptor.class);
+    private final String rootPackage;
+
     private final SessionManager sessionManager;
 
-    public RoleInterceptor(SessionManager sessionManager) {
+    public RoleInterceptor(SessionManager sessionManager, String rootPackage) {
         this.sessionManager = sessionManager;
+        this.rootPackage = rootPackage;
     }
 
     @Override
@@ -25,7 +31,7 @@ public class RoleInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        if (!(handlerMethod.getBeanType().getPackageName().startsWith("roomescape"))) {
+        if (!(handlerMethod.getBeanType().getPackageName().startsWith(rootPackage))) {
             return true;
         }
 
@@ -43,11 +49,13 @@ public class RoleInterceptor implements HandlerInterceptor {
         LoginMember loginMember = sessionManager.extractOrNull(request);
 
         if (loginMember == null) {
-            throw new UnauthorizedException();
+            throw new AuthException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
 
         if (adminOnly && !loginMember.isAdmin()) {
-            throw new ForbiddenException();
+            log.warn("[RoleInterceptor.preHandle] 관리자 권한이 없는 사용자(id={})가 관리자 전용 경로({} {})에 접근을 시도했습니다.",
+                    loginMember.id(), request.getMethod(), request.getRequestURI());
+            throw new AuthException(HttpStatus.FORBIDDEN, "이 리소스에 접근할 수 있는 권한이 없습니다.");
         }
 
         return true;

@@ -9,7 +9,9 @@ import java.time.LocalDate;
 
 @Entity
 @Table(
-        uniqueConstraints = @UniqueConstraint(columnNames = {
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_reservation_date_time_theme",
+                columnNames = {
                 "date", "time_id", "theme_id"
         })
 )
@@ -26,11 +28,11 @@ public class Reservation {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "time_id", nullable = false)
+    @JoinColumn(name = "time_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reservation_time"))
     private Time time;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "theme_id", nullable = false)
+    @JoinColumn(name = "theme_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reservation_theme"))
     private Theme theme;
 
     protected Reservation() {

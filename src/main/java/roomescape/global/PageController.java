@@ -1,9 +1,9 @@
 package roomescape.global;
 
+import auth.support.annotation.AdminOnly;
+import auth.support.annotation.Public;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import roomescape.domain.auth.web.support.annotation.AdminOnly;
-import roomescape.domain.auth.web.support.annotation.Public;
 
 @Controller
 public class PageController {

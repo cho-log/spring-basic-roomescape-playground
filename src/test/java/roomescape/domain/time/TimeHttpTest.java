@@ -9,10 +9,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.domain.reservation.repository.ReservationRepository;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.ThemeRepository;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.repository.TimeRepository;
+import roomescape.domain.waiting.repository.ReserveWaitingRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -33,6 +35,12 @@ public class TimeHttpTest {
 
     @Autowired
     private ThemeRepository themeRepository;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
+
+    @Autowired
+    private ReserveWaitingRepository reserveWaitingRepository;
 
     @BeforeEach
     void setup() {
@@ -74,6 +82,25 @@ public class TimeHttpTest {
                 .when().post("/times")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
+    void 이미_존재하는_value로_시간을_생성하면_409를_반환한다() {
+        // given
+        String token = createToken("admin@dummy.com", "dummy");
+        timeRepository.save(new Time(LocalTime.of(10, 0)));
+
+        Map<String, String> params = new HashMap<>();
+        params.put("value", "10:00");
+
+        // when & then
+        RestAssured.given()
+                .body(params)
+                .cookie("token", token)
+                .contentType(ContentType.JSON)
+                .when().post("/times")
+                .then()
+                .statusCode(HttpStatus.CONFLICT.value());
     }
 
     @Test
@@ -131,6 +158,56 @@ public class TimeHttpTest {
     }
 
     @Test
+    void 예약이_있는_시간은_삭제할_수_없다() {
+        // given
+        String token = createToken("admin@dummy.com", "dummy");
+
+        // data-test.sql: 1번 시간을 예약만 참조하도록 예약 대기를 삭제
+        reserveWaitingRepository.deleteById(1L);
+
+        // when
+        RestAssured.given()
+                .cookie("token", token)
+                .contentType(ContentType.JSON)
+                .when().delete("/times/1")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+
+        // then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .when().get("/times")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("size()", is(1));
+    }
+
+    @Test
+    void 예약_대기가_있는_시간은_삭제할_수_없다() {
+        // given
+        String token = createToken("admin@dummy.com", "dummy");
+
+        // data-test.sql: 1번 시간을 예약 대기만 참조하도록 예약을 삭제
+        reservationRepository.deleteById(1L);
+
+        // when
+        RestAssured.given()
+                .cookie("token", token)
+                .contentType(ContentType.JSON)
+                .when().delete("/times/1")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+
+        // then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .when().get("/times")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("size()", is(1));
+    }
+
+    @Test
     void 예약_가능_시간_조회에_성공한다() {
         // given
         timeRepository.save(new Time(LocalTime.of(10, 0)));
@@ -147,6 +224,43 @@ public class TimeHttpTest {
                 .statusCode(HttpStatus.OK.value())
                 .body("size()", is(3))
                 .body("time", hasItems("00:00", "10:00", "12:00"));
+    }
+
+    @Test
+    void 예약_가능_시간은_과거_날짜로_조회할_수_없다() {
+        // given
+        Theme theme = themeRepository.save(new Theme("Dummy", "it is Dummy for test."));
+
+        // date == 어제
+        getAvailableTimesExpectingBadRequest(LocalDate.now().minusDays(1).toString(), theme.getId());
+
+        // date == 먼 과거
+        getAvailableTimesExpectingBadRequest(LocalDate.of(1970, 1, 1).toString(), theme.getId());
+    }
+
+    @Test
+    void 오늘_날짜로_예약_가능_시간_조회에_성공한다() {
+        // given
+        Theme theme = themeRepository.save(new Theme("Dummy", "it is Dummy for test."));
+        String date = LocalDate.now().toString();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .when().get("/available-times?date=" + date + "&themeId=" + theme.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("size()", is(1))
+                .body("time", hasItems("00:00"))
+                .body("booked", hasItems(false));
+    }
+
+    private void getAvailableTimesExpectingBadRequest(String date, Long themeId) {
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .when().get("/available-times?date=" + date + "&themeId=" + themeId)
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
     private String createToken(String email, String password) {

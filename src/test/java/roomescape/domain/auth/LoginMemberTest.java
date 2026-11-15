@@ -1,8 +1,8 @@
 package roomescape.domain.auth;
 
+import auth.principal.LoginMember;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import roomescape.domain.auth.principal.LoginMember;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

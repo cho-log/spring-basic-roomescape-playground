@@ -3,12 +3,17 @@ package roomescape.domain.theme;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.ThemeRepository;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import({SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class ThemeRepositoryTest {
 
     private final String name = "Dummy";

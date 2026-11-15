@@ -4,13 +4,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import roomescape.domain.member.entity.Member;
 import roomescape.domain.member.repository.MemberRepository;
+import roomescape.global.data.SchemaInitializer;
+import roomescape.global.data.SchemaInitializerDependency;
+import roomescape.global.data.TestDataLoader;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@Import({SchemaInitializer.class, SchemaInitializerDependency.class, TestDataLoader.class})
 public class MemberRepositoryTest {
 
     private final String name = "Alice";
@@ -80,9 +87,43 @@ public class MemberRepositoryTest {
     @Test
     void 저장된_적_없는_nickname으로_existsByNickname을_호출하면_false를_반환한다() {
         // data-test.sql
-        boolean isExistsEmail = memberRepository.existsByEmail(email);
+        boolean isExistsNickname = memberRepository.existsByNickname(name);
 
-        assertThat(isExistsEmail).isFalse();
+        assertThat(isExistsNickname).isFalse();
+    }
+
+    @Test
+    void 저장된_id로_findByIdForUpdate를_호출하면_일치하는_Member를_반환한다() {
+        // data-test.sql
+        Optional<Member> foundMember = memberRepository.findByIdForUpdate(2L);
+
+        assertThat(foundMember).isPresent();
+        assertThat(foundMember.get().getNickname()).isEqualTo(conflictNickname);
+    }
+
+    @Test
+    void 저장된_적_없는_id로_findByIdForUpdate를_호출하면_빈_Optional을_반환한다() {
+        // data-test.sql
+        Optional<Member> foundMember = memberRepository.findByIdForUpdate(-1L);
+
+        assertThat(foundMember).isEmpty();
+    }
+
+    @Test
+    void 저장된_nickname으로_findByNicknameForUpdate를_호출하면_일치하는_Member를_반환한다() {
+        // data-test.sql
+        Optional<Member> foundMember = memberRepository.findByNicknameForUpdate(conflictNickname);
+
+        assertThat(foundMember).isPresent();
+        assertThat(foundMember.get().getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void 저장된_적_없는_nickname으로_findByNicknameForUpdate를_호출하면_빈_Optional을_반환한다() {
+        // data-test.sql
+        Optional<Member> foundMember = memberRepository.findByNicknameForUpdate(name);
+
+        assertThat(foundMember).isEmpty();
     }
 
     @Test

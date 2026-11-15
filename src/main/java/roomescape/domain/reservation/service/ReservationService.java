@@ -10,45 +10,60 @@ import roomescape.domain.theme.entity.Theme;
 import roomescape.domain.theme.repository.ThemeRepository;
 import roomescape.domain.time.entity.Time;
 import roomescape.domain.time.repository.TimeRepository;
+import roomescape.domain.waiting.repository.ReserveWaitingRepository;
 import roomescape.global.exception.ConflictException;
 import roomescape.global.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
 
+    private final ReserveWaitingRepository reserveWaitingRepository;
     private final ThemeRepository themeRepository;
     private final TimeRepository timeRepository;
     private final MemberRepository memberRepository;
 
-    public ReservationService(ReservationRepository reservationRepository, ThemeRepository themeRepository, TimeRepository timeRepository, MemberRepository memberRepository) {
+    public ReservationService(ReservationRepository reservationRepository, ReserveWaitingRepository reserveWaitingRepository, ThemeRepository themeRepository, TimeRepository timeRepository, MemberRepository memberRepository) {
         this.reservationRepository = reservationRepository;
+        this.reserveWaitingRepository = reserveWaitingRepository;
         this.themeRepository = themeRepository;
         this.timeRepository = timeRepository;
         this.memberRepository = memberRepository;
     }
 
     @Transactional
-    public Reservation createReservation(Long requesterId, String nickname, LocalDate date, Long themeId, Long timeId) {
+    public Reservation createReservationByAdmin(String nickname, LocalDate date, Long themeId, Long timeId) {
 
-        Member member = memberRepository.findByNickname(nickname)
-                .orElseThrow(() -> new NotFoundException(requesterId, Map.of("nickname", nickname), "해당하는 사용자를 찾을 수 없습니다."));
-        Theme foundTheme = themeRepository.findById(themeId)
-                .orElseThrow(() -> new NotFoundException(requesterId, Map.of("themeId", themeId), "해당하는 테마를 찾을 수 없습니다."));
-        Time foundTime = timeRepository.findById(timeId)
-                .orElseThrow(() -> new NotFoundException(requesterId, Map.of("time", timeId), "해당하는 시각을 찾을 수 없습니다."));
+        Member foundMember = memberRepository.findByNicknameForUpdate(nickname)
+                .orElseThrow(() -> new NotFoundException("해당하는 사용자를 찾을 수 없습니다."));
+        Theme foundTheme = themeRepository.getReferenceById(themeId);
+        Time foundTime = timeRepository.getReferenceById(timeId);
 
 
-        if (reservationRepository.existsByDateAndTimeAndTheme(date, foundTime, foundTheme)) {
-            throw new ConflictException(requesterId, Map.of("date", date, "themeId", themeId, "timeId", timeId), "이미 예약이 존재합니다.");
+        if (reserveWaitingRepository.existsByMemberAndDateAndTimeAndTheme(foundMember, date, foundTime, foundTheme)) {
+            throw new ConflictException("이미 예약 대기 중입니다.");
         }
 
-        return reservationRepository.save(new Reservation(date, member, foundTime, foundTheme));
+        return reservationRepository.save(new Reservation(date, foundMember, foundTime, foundTheme));
+    }
+
+    @Transactional
+    public Reservation createReservationByUser(Long memberId, LocalDate date, Long themeId, Long timeId) {
+
+        Member foundMember = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new NotFoundException("해당 사용자를 찾을 수 없습니다."));
+        Theme foundTheme = themeRepository.getReferenceById(themeId);
+        Time foundTime = timeRepository.getReferenceById(timeId);
+
+        if (reserveWaitingRepository.existsByMemberAndDateAndTimeAndTheme(foundMember, date, foundTime, foundTheme)) {
+            throw new ConflictException("이미 예약 대기중입니다.");
+        }
+
+        return reservationRepository.save(new Reservation(date, foundMember, foundTime, foundTheme));
     }
 
     public List<Reservation> findAllReservationByUser(Long memberId) {
@@ -56,9 +71,9 @@ public class ReservationService {
     }
 
     @Transactional
-    public void deleteById(Long memberId, Long reservationId) {
+    public void deleteById(Long reservationId) {
         Reservation foundReservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new NotFoundException(memberId, Map.of("reservationId", reservationId), "해당하는 예약을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("해당하는 예약을 찾을 수 없습니다."));
 
         reservationRepository.delete(foundReservation);
     }

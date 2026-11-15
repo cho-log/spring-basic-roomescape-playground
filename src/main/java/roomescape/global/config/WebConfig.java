@@ -1,12 +1,12 @@
 package roomescape.global.config;
 
+import auth.support.LoginMemberArgumentResolver;
+import auth.support.RoleInterceptor;
+import auth.support.SessionManager;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import roomescape.domain.auth.web.support.LoginMemberArgumentResolver;
-import roomescape.domain.auth.web.support.RoleInterceptor;
-import roomescape.domain.auth.web.support.SessionManager;
 
 import java.util.List;
 
@@ -28,6 +28,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RoleInterceptor(sessionManager));
+        registry.addInterceptor(new RoleInterceptor(sessionManager, "roomescape"));
     }
 }

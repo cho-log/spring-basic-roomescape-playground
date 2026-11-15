@@ -1,14 +1,11 @@
-package roomescape.domain.auth.web.support;
+package auth.support;
 
+import auth.principal.LoginMember;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import roomescape.domain.auth.principal.LoginMember;
 
-@Component
 public class SessionManager {
 
     private static final String LOGIN_MEMBER_SESSION_KEY = "LOGIN_MEMBER";
@@ -16,7 +13,7 @@ public class SessionManager {
     private final String sessionCookieName;
 
     public SessionManager(
-            @Value("${server.servlet.session.cookie.name}") String sessionCookieName
+            String sessionCookieName
     ) {
         this.sessionCookieName = sessionCookieName;
     }

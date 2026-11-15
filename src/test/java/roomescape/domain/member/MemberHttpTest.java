@@ -221,6 +221,25 @@ public class MemberHttpTest {
     }
 
     @Test
+    void 중복된_name으로_회원가입하면_409를_반환한다() {
+        // given
+        RestAssured.given()
+                .body(signupParams(name, email, password))
+                .contentType(ContentType.JSON)
+                .when().post("/members")
+                .then()
+                .statusCode(HttpStatus.CREATED.value());
+
+        // when & then
+        RestAssured.given()
+                .body(signupParams(name, "bob@test.com", password))
+                .contentType(ContentType.JSON)
+                .when().post("/members")
+                .then()
+                .statusCode(HttpStatus.CONFLICT.value());
+    }
+
+    @Test
     void 잘못된_비밀번호로_로그인하면_401을_반환한다() {
         // given
         Map<String, String> params = new HashMap<>();

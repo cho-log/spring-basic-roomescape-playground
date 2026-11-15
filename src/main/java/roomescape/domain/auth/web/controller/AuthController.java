@@ -1,5 +1,10 @@
 package roomescape.domain.auth.web.controller;
 
+import auth.principal.LoginMember;
+import auth.support.SessionManager;
+import auth.support.annotation.Login;
+import auth.support.annotation.LoginRequired;
+import auth.support.annotation.Public;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -8,14 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import roomescape.domain.auth.principal.LoginMember;
 import roomescape.domain.auth.service.AuthService;
 import roomescape.domain.auth.web.dto.AuthRequest;
 import roomescape.domain.auth.web.dto.UsernameResponse;
-import roomescape.domain.auth.web.support.SessionManager;
-import roomescape.domain.auth.web.support.annotation.Login;
-import roomescape.domain.auth.web.support.annotation.LoginRequired;
-import roomescape.domain.auth.web.support.annotation.Public;
 
 @RestController
 public class AuthController {

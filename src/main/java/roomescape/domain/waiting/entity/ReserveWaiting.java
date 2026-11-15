@@ -27,11 +27,11 @@ public class ReserveWaiting {
     private LocalDate date;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "time_id", nullable = false)
+    @JoinColumn(name = "time_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reserve_waiting_time"))
     private Time time;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "theme_id", nullable = false)
+    @JoinColumn(name = "theme_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reserve_waiting_theme"))
     private Theme theme;
 
     protected ReserveWaiting() {}
