@@ -1,9 +1,9 @@
 package roomescape.reservation;
 
+import auth.LoginMember;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.member.AuthorizationException;
-import roomescape.member.LoginMember;
 import roomescape.member.Member;
 import roomescape.member.MemberRepository;
 import roomescape.member.Role;
@@ -67,12 +67,12 @@ public class ReservationService {
     }
 
     private Reservation createReservation(ReservationRequest reservationRequest, LoginMember loginMember, Time time, Theme theme) {
-        if (loginMember.role() == Role.ADMIN && reservationRequest.getName() != null) {
-            return Reservation.forGuest(reservationRequest.getName(), reservationRequest.getDate(), time, theme);
-        }
-
         Member member = memberRepository.findById(loginMember.id())
                 .orElseThrow(() -> new AuthorizationException("존재하지 않는 회원입니다."));
+
+        if (member.getRole() == Role.ADMIN && reservationRequest.getName() != null) {
+            return Reservation.forGuest(reservationRequest.getName(), reservationRequest.getDate(), time, theme);
+        }
         return Reservation.forMember(member, reservationRequest.getDate(), time, theme);
     }
 }

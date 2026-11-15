@@ -1,5 +1,6 @@
 package roomescape.member;
 
+import auth.LoginMember;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -23,7 +24,6 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-        Member member = authService.findAuthenticatedMember(request);
-        return LoginMember.from(member);
+        return authService.findLoginMember(request);
     }
 }

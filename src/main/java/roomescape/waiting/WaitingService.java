@@ -1,9 +1,9 @@
 package roomescape.waiting;
 
+import auth.LoginMember;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.member.AuthorizationException;
-import roomescape.member.LoginMember;
 import roomescape.member.Member;
 import roomescape.member.MemberRepository;
 import roomescape.reservation.ReservationRepository;
