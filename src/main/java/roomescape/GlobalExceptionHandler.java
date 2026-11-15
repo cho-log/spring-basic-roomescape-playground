@@ -4,7 +4,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import roomescape.exception.*;
+import roomescape.exception.auth.ForbiddenAdminOperationException;
+import roomescape.exception.auth.InvalidAuthenticationException;
+import roomescape.exception.member.DuplicateMemberException;
+import roomescape.exception.member.InvalidMemberException;
+import roomescape.exception.member.NotFoundMemberException;
+import roomescape.exception.reservation.DuplicateReservationException;
+import roomescape.exception.reservation.ForbiddenReservationException;
+import roomescape.exception.reservation.InvalidReservationException;
+import roomescape.exception.reservation.NotFoundReservationException;
+import roomescape.exception.theme.InvalidThemeException;
+import roomescape.exception.theme.NotFoundThemeException;
+import roomescape.exception.time.DuplicateTimeException;
+import roomescape.exception.time.InvalidTimeException;
+import roomescape.exception.time.NotFoundTimeException;
+import roomescape.exception.waiting.DuplicateWaitingException;
+import roomescape.exception.waiting.ForbiddenWaitingException;
+import roomescape.exception.waiting.NotFoundWaitingException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

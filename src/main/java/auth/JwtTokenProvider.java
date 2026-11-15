@@ -1,51 +1,52 @@
-package roomescape.auth;
+package auth;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import roomescape.member.domain.Member;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-@Component
 public class JwtTokenProvider {
 
     private final long expirationMilliseconds;
     private final Key secretKey;
 
     public JwtTokenProvider(
-            @Value("${roomescape.auth.jwt.secret}") String secretKey,
-            @Value("${roomescape.auth.jwt.expiration-milliseconds}") long expirationMilliseconds
+            String secretKey,
+            long expirationMilliseconds
     ) {
-        this.secretKey = Keys.hmacShaKeyFor(
-                secretKey.getBytes(StandardCharsets.UTF_8)
-        );
+        this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.expirationMilliseconds = expirationMilliseconds;
     }
 
-    public String createToken(Member member) {
+    public String createToken(Long memberId, String role) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMilliseconds);
 
         return Jwts.builder()
-                .setSubject(member.getId().toString())
+                .setSubject(memberId.toString())
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(secretKey)
                 .compact();
     }
 
-    public Long extractMemberId(String token) {
-        String memberId = Jwts.parserBuilder()
+    private Claims extractClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
+    }
 
-        return Long.valueOf(memberId);
+    public Long extractMemberId(String token) {
+        return Long.valueOf(extractClaims(token).getSubject());
+    }
+
+    public String extractRole(String token) {
+        return extractClaims(token).get("role", String.class);
     }
 }

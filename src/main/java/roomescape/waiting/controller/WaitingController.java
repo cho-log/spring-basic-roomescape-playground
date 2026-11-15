@@ -3,7 +3,7 @@ package roomescape.waiting.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import roomescape.auth.LoginMember;
-import roomescape.exception.InvalidReservationException;
+import roomescape.exception.reservation.InvalidReservationException;
 import roomescape.waiting.dto.WaitingRequest;
 import roomescape.waiting.dto.WaitingResponse;
 import roomescape.waiting.service.WaitingService;

@@ -1,7 +1,7 @@
 package roomescape.reservation.domain;
 
 import jakarta.persistence.*;
-import roomescape.exception.InvalidReservationException;
+import roomescape.exception.reservation.InvalidReservationException;
 import roomescape.member.domain.Member;
 import roomescape.theme.domain.Theme;
 import roomescape.time.domain.Time;
