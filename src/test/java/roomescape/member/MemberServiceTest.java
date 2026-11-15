@@ -1,5 +1,6 @@
 package roomescape.member;
 
+import auth.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +26,7 @@ class MemberServiceTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtUtils jwtUtils;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -34,7 +35,7 @@ class MemberServiceTest {
 
     @BeforeEach
     void setUp() {
-        memberService = new MemberService(memberRepository, jwtTokenProvider, passwordEncoder);
+        memberService = new MemberService(memberRepository, jwtUtils, passwordEncoder);
     }
 
     @Test
@@ -82,7 +83,12 @@ class MemberServiceTest {
 
         given(memberRepository.findByEmail(email)).willReturn(Optional.of(member));
         given(passwordEncoder.matches(password, member.getPassword())).willReturn(true);
-        given(jwtTokenProvider.createToken(member)).willReturn("mocked-jwt-token");
+        given(jwtUtils.createToken(
+                member.getId(),
+                member.getName(),
+                member.getEmail(),
+                member.getRole()
+        )).willReturn("mocked-jwt-token");
 
         // when
         String token = memberService.login(email, password);

@@ -1,5 +1,7 @@
 package roomescape.member;
 
+import auth.JwtUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,10 +11,11 @@ import roomescape.exception.UnauthorizedException;
 
 @Component
 public class AdminInterceptor implements HandlerInterceptor {
-    private final MemberService memberService;
+    // 7단계) MemberService 대신 JwtUtils로 필드 수정
+    private final JwtUtils jwtUtils;
 
-    public AdminInterceptor(MemberService memberService) {
-        this.memberService = memberService;
+    public AdminInterceptor(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -27,17 +30,11 @@ public class AdminInterceptor implements HandlerInterceptor {
         Cookie[] cookies = request.getCookies();
         String token = extractToken(cookies);
 
-        // 2) 위 토큰으로 Member를 조회한다
-        Member memberByToken = memberService.findMemberByToken(token);
+        // 7단계) DB조회 제거, Claims에서 추출한 role로 권한 확인
+        Claims claims = jwtUtils.getClaims(token);
 
-        // 3-1) 로그인 상태인지 검사한다
-        if (memberByToken == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return false;
-        }
-
-        // 3-2) ADMIN이 아니면(관리자 권한 없음) 차단한다
-        if (!"ADMIN".equals(memberByToken.getRole())) {
+        String role = claims.get("role", String.class);
+        if (!"ADMIN".equals(role)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
@@ -45,7 +42,7 @@ public class AdminInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    private  String extractToken(Cookie[] cookies) {
+    private String extractToken(Cookie[] cookies) {
         if (cookies == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
@@ -56,6 +53,4 @@ public class AdminInterceptor implements HandlerInterceptor {
         }
         throw new UnauthorizedException("로그인이 필요합니다.");
     }
-
-
 }

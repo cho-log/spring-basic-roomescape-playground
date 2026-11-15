@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import roomescape.exception.DuplicateException;
 import roomescape.exception.NotFoundException;
 import roomescape.exception.UnauthorizedException;
+import roomescape.member.LoginMember;
 import roomescape.member.Member;
 import roomescape.theme.Theme;
 import roomescape.theme.ThemeRepository;
@@ -30,6 +31,18 @@ public class ReservationService {
         this.waitingRepository = waitingRepository;
     }
 
+    public List<ReservationResponse> findAll() {
+        return reservationRepository.findAll().stream()
+                .map(it -> new ReservationResponse(
+                        it.getId(),
+                        resolveName(it),
+                        it.getTheme().getName(),
+                        it.getDate(),
+                        it.getTime().getTime()
+                ))
+                .toList();
+    }
+
     @Transactional
     public ReservationResponse save(ReservationRequest reservationRequest, Member member) {
         Theme theme = themeRepository.findById(reservationRequest.getTheme())
@@ -48,23 +61,17 @@ public class ReservationService {
         return new ReservationResponse(saved.getId(), resolveName(saved), saved.getTheme().getName(), saved.getDate(), saved.getTime().getTime());
     }
 
-    // 예약이 본인 것인지 / ADMIN 권한인지 확인하는 로직을 Resrvation과 ADMIN으로 책임 분리
+    // 7단계 수정) DB 조회 없이 ArgumentResolver가 토큰에서 꺼내온 LoginMember로 권한을 검사
     @Transactional
-    public void deleteById(Long id, Member loginMember) {
+    public void deleteById(Long id, LoginMember loginMember) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 예약입니다."));
 
-        if (!reservation.isOwnedBy(loginMember) && !loginMember.isAdmin()) {
+        if (!reservation.isOwnedBy(loginMember.getId()) && !loginMember.isAdmin()) {
             throw new UnauthorizedException("본인의 예약이거나 관리자만 삭제할 수 있습니다.");
         }
 
         reservationRepository.deleteById(id);
-    }
-
-    public List<ReservationResponse> findAll() {
-        return reservationRepository.findAll().stream()
-                .map(it -> new ReservationResponse(it.getId(), resolveName(it), it.getTheme().getName(), it.getDate(), it.getTime().getTime()))
-                .toList();
     }
 
     public List<MyReservationResponse> findMyReservations(Long memberId) {
